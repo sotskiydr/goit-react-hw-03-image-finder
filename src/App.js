@@ -64,7 +64,7 @@ class App extends React.Component {
     this.getData(searchValue, page + 1);
     setTimeout(() => {
       ref.current.scrollIntoView({ behavior: 'smooth' });
-    }, 200);
+    }, 500);
   };
 
   render() {
