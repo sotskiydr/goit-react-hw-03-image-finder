@@ -5,6 +5,7 @@ import ImageGallery from './components/ImageGallery/ImageGallery';
 import Button from './components/Button/Button';
 import Loader from './components/Loader/Loader';
 import Modal from './components/Modal/Modal';
+import fetchApi from './components/ApiService/Api';
 
 class App extends React.Component {
   state = {
@@ -14,12 +15,11 @@ class App extends React.Component {
     status: 'idle',
     showModal: false,
     largeImageURL: {},
+    error: '',
   };
 
   componentDidMount() {
-    const { searchValue, page } = this.state;
     this.setState({ status: 'pending' });
-    this.getData(searchValue, page);
   }
 
   toggleModal = largeImage => {
@@ -31,11 +31,9 @@ class App extends React.Component {
   };
 
   getData(q, page) {
-    const KEY = 'key=23877606-1096bee22002de3079c9510e6';
-    const BASE_URL = `https://pixabay.com/api/?q=${q}&page=${page}&${KEY}&image_type=photo&orientation=horizontal&per_page=12`;
-    fetch(BASE_URL)
-      .then(r => r.json())
-      .then(images => this.onPushImagesToState(images));
+    fetchApi(q, page)
+      .then(images => this.onPushImagesToState(images))
+      .catch(error => this.setState({ error: error }));
   }
 
   onPushImagesToState = images => {
@@ -46,6 +44,8 @@ class App extends React.Component {
   };
 
   onSubmitForm = value => {
+    if (value.trim() === '') return;
+    if (value === this.state.searchValue) return;
     this.setState({
       status: 'pending',
       images: [],
@@ -68,7 +68,8 @@ class App extends React.Component {
   };
 
   render() {
-    const { images, status, showModal, largeImageURL } = this.state;
+    const { images, status, showModal, largeImageURL, searchValue } =
+      this.state;
     return (
       <div className="App">
         {showModal && (
@@ -76,6 +77,9 @@ class App extends React.Component {
         )}
         <Searchbar onSubmit={this.onSubmitForm} />
         {status === 'pending' && <Loader />}
+        {searchValue.trim() === '' && (
+          <h2 className="title">Введите запрос в поиск</h2>
+        )}
         {images.length > 0 && (
           <ImageGallery hits={images} toggleModal={this.toggleModal} />
         )}
